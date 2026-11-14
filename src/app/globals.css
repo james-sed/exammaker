@@ -1,0 +1,5 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* TODO: Define CSS variables for shadcn/ui light and dark themes */

@@ -1,0 +1,216 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// -------------------------------------------------------------
+// Authentication Models (Compatible with Auth.js / NextAuth v5)
+// -------------------------------------------------------------
+
+enum Role {
+  TEACHER
+  STUDENT
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // Hashed password for Credentials provider
+  role          Role      @default(STUDENT)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  quizzes       Quiz[]    @relation("TeacherQuizzes")
+  attempts      Attempt[] @relation("StudentAttempts")
+
+  @@index([email])
+  @@index([role])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// -------------------------------------------------------------
+// Quiz Domain
+// -------------------------------------------------------------
+
+model Quiz {
+  id               String     @id @default(cuid())
+  title            String
+  description      String?    @db.Text
+  timeLimitMinutes Int?       // Optional duration in minutes; null = untimed
+  maxAttempts      Int        @default(1)
+  shuffleQuestions Boolean    @default(false)
+  shuffleOptions   Boolean    @default(false)
+  isPublished      Boolean    @default(false)
+  shareCode        String     @unique @default(cuid()) // URL slug for sharing
+
+  authorId         String
+  author           User       @relation("TeacherQuizzes", fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  questions        Question[]
+  attempts         Attempt[]
+
+  @@index([authorId])
+  @@index([shareCode])
+  @@index([isPublished])
+}
+
+// -------------------------------------------------------------
+// Question Domain (Extensible for MCQ, T/F, Short Answer, etc.)
+// -------------------------------------------------------------
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+  ESSAY
+  MATCHING
+}
+
+model Question {
+  id          String         @id @default(cuid())
+  quizId      String
+  quiz        Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  type        QuestionType   @default(MULTIPLE_CHOICE)
+  prompt      String         @db.Text
+  explanation String?        @db.Text // Post-submission explanatory feedback
+  points      Float          @default(1.0)
+  order       Int            @default(0)
+  config      Json?          // Flexible JSON storage for future types (e.g., matching pairs, essay rubrics)
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  options     QuestionOption[]
+  answers     Answer[]
+
+  @@index([quizId])
+  @@index([quizId, order])
+}
+
+model QuestionOption {
+  id         String   @id @default(cuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text       String   @db.Text
+  isCorrect  Boolean  @default(false)
+  order      Int      @default(0)
+
+  answers    Answer[]
+
+  @@index([questionId])
+  @@index([questionId, order])
+}
+
+// -------------------------------------------------------------
+// Attempt & Grading Domain
+// -------------------------------------------------------------
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  EXPIRED
+  GRADED
+  NEEDS_REVIEW
+}
+
+model Attempt {
+  id          String        @id @default(cuid())
+  quizId      String
+  quiz        Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     User          @relation("StudentAttempts", fields: [studentId], references: [id], onDelete: Cascade)
+
+  startedAt   DateTime      @default(now())
+  submittedAt DateTime?
+  expiresAt   DateTime?     // Server-enforced deadline: startedAt + quiz.timeLimitMinutes
+  status      AttemptStatus @default(IN_PROGRESS)
+
+  score       Float         @default(0) // Total earned points
+  maxScore    Float         @default(0) // Total possible points
+  percentage  Float         @default(0) // Computed score percentage
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  answers     Answer[]
+
+  @@index([quizId])
+  @@index([studentId])
+  @@index([quizId, studentId])
+  @@index([status])
+}
+
+model Answer {
+  id               String          @id @default(cuid())
+  attemptId        String
+  attempt          Attempt         @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId       String
+  question         Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  selectedOptionId String?
+  selectedOption   QuestionOption? @relation(fields: [selectedOptionId], references: [id], onDelete: SetNull)
+
+  textAnswer       String?         @db.Text // Value for Short Answer or Essay
+  isCorrect        Boolean?
+  scoreAwarded     Float           @default(0)
+  feedback         String?         @db.Text
+
+  answeredAt       DateTime        @default(now())
+
+  @@unique([attemptId, questionId]) // One recorded answer per question per attempt
+  @@index([attemptId])
+  @@index([questionId])
+}
