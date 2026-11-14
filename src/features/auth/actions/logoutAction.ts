@@ -1,4 +1,7 @@
-// TODO: Implement server action to sign out user and invalidate session
+"use server";
+
+import { signOut } from "@/lib/auth";
+
 export async function logoutAction() {
-  // TODO
+  await signOut({ redirectTo: "/login" });
 }
