@@ -4,57 +4,191 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    color-scheme: light;
+
+    /* Surfaces */
+    --background: 210 40% 98%; /* Slate 50 */
+    --foreground: 222 47% 11%; /* Slate 900 */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary — Indigo */
+    --primary: 243 75% 59%; /* #4F46E5 */
+    --primary-hover: 245 58% 51%; /* #4338CA */
+    --primary-active: 244 54% 42%; /* #3730A3 */
+    --primary-foreground: 0 0% 100%;
+    --primary-text: 244 54% 42%; /* #3730A3 — AA on white and tints */
+    --primary-tint: 226 100% 97%; /* #EEF2FF */
+    --primary-tint-foreground: 244 54% 42%;
+
+    /* Neutral actions */
+    --secondary: 210 40% 96%; /* #F1F5F9 */
+    --secondary-hover: 214 32% 91%; /* #E2E8F0 */
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 19% 35%; /* #475569 */
+    --subtle-foreground: 215 16% 47%; /* #64748B */
+
+    /* Success — Emerald (states only) */
+    --success: 162 88% 30%; /* #047857 — AA text */
+    --success-fill: 160 84% 39%; /* #10B981 — fills and icons */
+    --success-foreground: 0 0% 100%;
+    --success-tint: 152 81% 96%; /* #ECFDF5 */
+    --success-tint-foreground: 162 88% 26%;
+
+    /* Warning — Amber (timers and warnings only) */
+    --warning: 32 95% 44%; /* #B45309 — AA text */
+    --warning-accent: 38 92% 50%; /* #F59E0B — fills and icons */
+    --warning-foreground: 0 0% 100%;
+    --warning-tint: 48 100% 96%; /* #FFFBEB */
+    --warning-tint-foreground: 32 95% 30%;
+
+    /* Destructive — Red (errors only) */
+    --destructive: 0 72% 51%; /* #DC2626 — solid background, 4.8:1 with white */
+    --destructive-hover: 0 74% 42%;
+    --destructive-active: 0 70% 35%;
+    --destructive-text: 0 74% 42%; /* #B91C1C — AA text */
+    --destructive-fill: 0 84% 60%; /* #EF4444 — fills and icons */
+    --destructive-foreground: 0 0% 100%;
+    --destructive-tint: 0 86% 97%; /* #FEF2F2 */
+    --destructive-tint-foreground: 0 74% 35%;
+
+    /* Lines and focus */
+    --border: 214 32% 91%; /* #E2E8F0 */
+    --input: 214 32% 91%;
+    --ring: 243 75% 59%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-  }
-}
+    color-scheme: dark;
 
-@layer base {
+    /* Surfaces — Slate 950 canvas, Slate 900 cards, Slate 800 lines */
+    --background: 229 84% 5%; /* #020617 */
+    --foreground: 210 40% 96%; /* #F1F5F9 */
+    --card: 222 47% 11%; /* #0F172A */
+    --card-foreground: 210 40% 96%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 243 75% 59%;
+    --primary-hover: 243 76% 63%;
+    --primary-active: 245 58% 51%;
+    --primary-foreground: 0 0% 100%;
+    --primary-text: 234 89% 82%; /* #A5B4FC */
+    --primary-tint: 243 60% 16%;
+    --primary-tint-foreground: 234 89% 82%;
+
+    --secondary: 217 33% 17%; /* #1E293B */
+    --secondary-hover: 215 25% 27%; /* #334155 */
+    --secondary-foreground: 210 40% 96%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 214 32% 84%; /* #CBD5E1 */
+    --subtle-foreground: 215 20% 65%; /* #94A3B8 */
+
+    --success: 152 76% 70%;
+    --success-fill: 160 84% 45%;
+    --success-foreground: 222 47% 4%;
+    --success-tint: 160 60% 12%;
+    --success-tint-foreground: 152 76% 78%;
+
+    --warning: 38 92% 65%;
+    --warning-accent: 38 92% 50%;
+    --warning-foreground: 222 47% 4%;
+    --warning-tint: 38 45% 13%;
+    --warning-tint-foreground: 38 92% 70%;
+
+    --destructive: 0 72% 48%;
+    --destructive-hover: 0 72% 42%;
+    --destructive-active: 0 70% 36%;
+    --destructive-text: 0 91% 71%; /* #F87171 */
+    --destructive-fill: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --destructive-tint: 0 40% 14%;
+    --destructive-tint-foreground: 0 91% 78%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 20%;
+    --ring: 234 89% 82%;
+  }
+
   * {
     @apply border-border;
   }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background font-sans text-base text-foreground antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display font-bold tracking-[-0.02em] text-foreground;
+  }
+
+  ::selection {
+    @apply bg-primary-tint text-primary-tint-foreground;
+  }
+}
+
+@layer utilities {
+  /* Single focus treatment for every interactive element. */
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  /* Hero backdrop: 1px dot grid, faded out before it reaches the content. */
+  .bg-dot-grid {
+    background-image: radial-gradient(
+      hsl(var(--foreground) / 0.09) 1px,
+      transparent 1px
+    );
+    background-size: 24px 24px;
+  }
+
+  .mask-radial-fade {
+    -webkit-mask-image: radial-gradient(
+      ellipse 70% 60% at 50% 0%,
+      #000 30%,
+      transparent 100%
+    );
+    mask-image: radial-gradient(
+      ellipse 70% 60% at 50% 0%,
+      #000 30%,
+      transparent 100%
+    );
+  }
+
+  /* Very low-opacity indigo glow behind the hero copy. */
+  .bg-hero-glow {
+    background-image: radial-gradient(
+      50% 50% at 50% 0%,
+      hsl(var(--primary) / 0.14),
+      transparent 75%
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
