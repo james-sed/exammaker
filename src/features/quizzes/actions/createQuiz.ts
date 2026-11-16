@@ -1,7 +1,7 @@
 "use server";
 
+import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
-import { nanoid } from "nanoid";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { quizSettingsSchema, QuizSettingsInput } from "../schemas/quiz.schema";
@@ -12,16 +12,16 @@ export interface CreateQuizResult {
   error?: string;
 }
 
+function createShareId() {
+  return randomBytes(18).toString("base64url");
+}
+
 export async function createQuiz(input: QuizSettingsInput): Promise<CreateQuizResult> {
   try {
     const session = await auth();
 
     if (!session?.user?.id) {
       return { success: false, error: "Unauthorized. Please sign in." };
-    }
-
-    if (session.user.role !== "TEACHER" && session.user.role !== "ADMIN") {
-      return { success: false, error: "Forbidden. Only teachers can create quizzes." };
     }
 
     const validated = quizSettingsSchema.safeParse(input);
@@ -37,26 +37,26 @@ export async function createQuiz(input: QuizSettingsInput): Promise<CreateQuizRe
       title,
       description,
       timeLimitMinutes,
-      maxAttempts,
-      shuffleQuestions,
+      attemptLimit,
       shuffleOptions,
-      isPublished,
     } = validated.data;
 
     const quiz = await db.quiz.create({
       data: {
         title,
         description: description || null,
-        timeLimitMinutes: timeLimitMinutes || null,
-        maxAttempts,
-        shuffleQuestions,
-        shuffleOptions,
-        isPublished,
-        shareCode: nanoid(10),
-        authorId: session.user.id,
+        shareId: createShareId(),
+        ownerId: session.user.id,
+        status: "DRAFT",
+        settings: {
+          timeLimitMinutes: timeLimitMinutes ?? null,
+          attemptLimit,
+          shuffleOptions,
+        },
       },
     });
 
+    revalidatePath("/dashboard");
     revalidatePath("/quizzes");
 
     return {

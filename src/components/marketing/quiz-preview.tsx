@@ -7,7 +7,8 @@ export type QuizPreviewVariant =
   | "hero"
   | "multiple-choice"
   | "true-false"
-  | "short-answer";
+  | "identification"
+  | "enumeration";
 
 export interface QuizPreviewProps {
   variant?: QuizPreviewVariant;
@@ -188,7 +189,7 @@ function TrueFalsePreview({ className }: { className?: string }) {
   );
 }
 
-function ShortAnswerPreview({ className }: { className?: string }) {
+function IdentificationPreview({ className }: { className?: string }) {
   return (
     <div
       aria-hidden="true"
@@ -213,6 +214,39 @@ function ShortAnswerPreview({ className }: { className?: string }) {
   );
 }
 
+function EnumerationPreview({ className }: { className?: string }) {
+  const items = ["Mitochondrion", "Ribosome", "Nucleus"];
+
+  return (
+    <div
+      aria-hidden="true"
+      className={cn(
+        "flex flex-col rounded-xl border border-border bg-card p-4",
+        className
+      )}
+    >
+      <p className="text-sm font-medium leading-snug text-foreground">
+        Name three organelles found in a eukaryotic cell.
+      </p>
+      <div className="mt-3 space-y-2">
+        {items.map((item) => (
+          <div
+            key={item}
+            className="flex items-center gap-2 rounded-md border border-success-fill/25 bg-success-tint px-3 py-2"
+          >
+            <Check className="h-3.5 w-3.5 text-success" strokeWidth={3} />
+            <span className="text-sm text-success-tint-foreground">{item}</span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-xs text-subtle-foreground">
+        3 of 3 items · partial credit per item
+      </p>
+      <PreviewFooter />
+    </div>
+  );
+}
+
 /**
  * Static product mock. Built from real markup (not an image) so it inherits
  * the design tokens and stays sharp at every density.
@@ -226,8 +260,10 @@ export function QuizPreview({
       return <MultipleChoicePreview className={className} />;
     case "true-false":
       return <TrueFalsePreview className={className} />;
-    case "short-answer":
-      return <ShortAnswerPreview className={className} />;
+    case "identification":
+      return <IdentificationPreview className={className} />;
+    case "enumeration":
+      return <EnumerationPreview className={className} />;
     default:
       return <HeroPreview className={className} />;
   }

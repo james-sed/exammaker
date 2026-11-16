@@ -9,83 +9,91 @@ interface ShareLinkModalProps {
   isOpen: boolean;
   onClose: () => void;
   quizTitle: string;
-  shareCode: string;
+  shareId: string;
 }
 
 export function ShareLinkModal({
   isOpen,
   onClose,
   quizTitle,
-  shareCode,
+  shareId,
 }: ShareLinkModalProps) {
   const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
 
-  const shareUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/quiz/${shareCode}/take`
-    : `/quiz/${shareCode}/take`;
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/q/${shareId}`
+      : `/q/${shareId}`;
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy link:", err);
+    } catch (error) {
+      console.error("Failed to copy link:", error);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="share-title"
+        className="w-full max-w-md animate-in rounded-xl border border-border bg-card p-6 shadow-2xl fade-in zoom-in-95 duration-150"
+      >
+        <div className="flex items-center justify-between border-b border-border pb-3">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
-              <Share2 className="h-5 w-5" />
+            <div className="rounded-lg bg-primary-tint p-1.5 text-primary-tint-foreground">
+              <Share2 className="h-5 w-5" aria-hidden="true" />
             </div>
-            <h3 className="font-bold text-lg text-slate-900">Share Quiz</h3>
+            <h3 id="share-title" className="text-lg font-bold text-foreground">
+              Share quiz
+            </h3>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 rounded-md p-1"
+            aria-label="Close"
+            className="focus-ring rounded-md p-1 text-subtle-foreground hover:text-foreground"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
-        <div className="py-4 space-y-3">
-          <p className="text-sm text-slate-600">
-            Share this link with students to allow them to take{" "}
-            <span className="font-semibold text-slate-900">&quot;{quizTitle}&quot;</span>:
+        <div className="space-y-3 py-4">
+          <p className="text-sm text-muted-foreground">
+            Anyone with this link can take{" "}
+            <span className="font-semibold text-foreground">
+              &quot;{quizTitle}&quot;
+            </span>
+            . No account needed.
           </p>
 
           <div className="flex gap-2">
             <Input
               readOnly
               value={shareUrl}
-              className="bg-slate-50 font-mono text-xs select-all"
+              aria-label="Share link"
+              className="select-all bg-secondary font-mono text-xs"
             />
-            <Button onClick={handleCopy} className="shrink-0 flex items-center gap-1.5">
+            <Button onClick={handleCopy} className="shrink-0">
               {copied ? (
                 <>
-                  <Check className="h-4 w-4 text-emerald-400" />
-                  Copied
+                  <Check className="h-4 w-4" aria-hidden="true" /> Copied
                 </>
               ) : (
                 <>
-                  <Copy className="h-4 w-4" />
-                  Copy
+                  <Copy className="h-4 w-4" aria-hidden="true" /> Copy
                 </>
               )}
             </Button>
           </div>
-          <p className="text-xs text-slate-400">
-            Note: Students must be signed in to submit their attempts.
-          </p>
         </div>
 
-        <div className="pt-3 border-t border-slate-100 flex justify-end">
+        <div className="flex justify-end border-t border-border pt-3">
           <Button variant="outline" onClick={onClose}>
             Done
           </Button>

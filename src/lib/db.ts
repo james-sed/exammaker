@@ -1,4 +1,3 @@
-// TODO: Initialize PrismaClient singleton to prevent exhausting connections in development
 import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };

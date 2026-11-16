@@ -11,18 +11,18 @@ export interface QuestionForGrading {
   }[];
 }
 
-export interface StudentAnswerInput {
+export interface SubmittedAnswerInput {
   selectedOptionId?: string | null;
   textAnswer?: string | null;
 }
 
 /**
  * Pure evaluation function per question.
- * Evaluates student answer against question rubric and awards score.
+ * Evaluates a submitted answer against the question rubric and awards score.
  */
 export function evaluateAnswer(
   question: QuestionForGrading,
-  answer?: StudentAnswerInput | null
+  answer?: SubmittedAnswerInput | null
 ): EvaluationResult {
   const maxPoints = question.points ?? 1.0;
 
@@ -48,14 +48,14 @@ export function evaluateAnswer(
     }
 
     case "SHORT_ANSWER": {
-      const studentText = answer.textAnswer?.trim().toLowerCase();
-      if (!studentText) {
+      const submittedText = answer.textAnswer?.trim().toLowerCase();
+      if (!submittedText) {
         return { isCorrect: false, scoreAwarded: 0, maxPoints };
       }
       // Check against any option designated as an accepted correct answer
       const isCorrect = question.options.some((opt) => {
         const accepted = opt.text.trim().toLowerCase();
-        return opt.isCorrect && accepted === studentText;
+        return opt.isCorrect && accepted === submittedText;
       });
       return {
         isCorrect,

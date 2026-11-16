@@ -17,23 +17,23 @@ export async function deleteQuiz(quizId: string): Promise<DeleteQuizResult> {
       return { success: false, error: "Unauthorized. Please sign in." };
     }
 
-    const quiz = await db.quiz.findUnique({
-      where: { id: quizId },
-      select: { authorId: true },
+    const quiz = await db.quiz.findFirst({
+      where: {
+        id: quizId,
+        ownerId: session.user.id,
+      },
+      select: { id: true },
     });
 
     if (!quiz) {
       return { success: false, error: "Quiz not found." };
     }
 
-    if (quiz.authorId !== session.user.id && session.user.role !== "ADMIN") {
-      return { success: false, error: "Forbidden. You can only delete your own quizzes." };
-    }
-
     await db.quiz.delete({
       where: { id: quizId },
     });
 
+    revalidatePath("/dashboard");
     revalidatePath("/quizzes");
 
     return { success: true };

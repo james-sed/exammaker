@@ -1,21 +1,21 @@
 import { db } from "@/lib/db";
+import { parseQuizSettings } from "../schemas/quiz.schema";
 import { PublicQuizMeta } from "../types/quiz.types";
 
-export async function getPublicQuizMeta(identifier: string): Promise<PublicQuizMeta | null> {
+export async function getPublicQuizMeta(
+  shareId: string
+): Promise<PublicQuizMeta | null> {
   const quiz = await db.quiz.findFirst({
     where: {
-      OR: [
-        { id: identifier },
-        { shareCode: identifier },
-      ],
-      isPublished: true,
+      shareId,
+      status: "PUBLISHED",
     },
     select: {
       id: true,
       title: true,
       description: true,
-      timeLimitMinutes: true,
-      maxAttempts: true,
+      shareId: true,
+      settings: true,
       _count: {
         select: {
           questions: true,
@@ -32,8 +32,8 @@ export async function getPublicQuizMeta(identifier: string): Promise<PublicQuizM
     id: quiz.id,
     title: quiz.title,
     description: quiz.description,
-    timeLimitMinutes: quiz.timeLimitMinutes,
-    maxAttempts: quiz.maxAttempts,
+    shareId: quiz.shareId,
+    settings: parseQuizSettings(quiz.settings),
     questionCount: quiz._count.questions,
   };
 }

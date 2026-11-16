@@ -1,13 +1,12 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  Check,
   CheckCircle2,
-  GraduationCap,
+  FileText,
   Link2,
   ListChecks,
+  Sparkles,
   Timer,
-  Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,46 +21,46 @@ import { Steps } from "@/components/marketing/steps";
 
 const FEATURES = [
   {
+    icon: FileText,
+    title: "Quizzes from your files",
+    description:
+      "Upload a PDF, DOCX, PPTX, or TXT file. The app extracts the text and drafts questions from it.",
+  },
+  {
+    icon: ListChecks,
+    title: "Four question types",
+    description:
+      "Multiple choice, true or false, identification, and enumeration, with points set per question.",
+  },
+  {
     icon: Timer,
     title: "Server-enforced timer",
     description:
       "The deadline is checked when an attempt is submitted, not by a countdown running in the browser.",
   },
   {
-    icon: ListChecks,
-    title: "Flexible question types",
-    description:
-      "Multiple choice, true or false, and short answer, with points set per question.",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Instant auto-grading",
-    description:
-      "Every attempt is scored on submission. Short answers match the accepted answers you list.",
-  },
-  {
     icon: Link2,
     title: "Shareable links",
     description:
-      "Publish a quiz to get one link. Students sign in and see only their own attempt.",
+      "Publish a quiz to get one link. Anyone with the link can take it, with no account needed.",
   },
 ] as const;
 
 const STEPS = [
   {
-    title: "Create",
+    title: "Upload",
     description:
-      "Add questions, set points and a time limit. Keep the quiz as a draft while you finish the wording.",
+      "Add your study material and choose how many questions you want, which types, and the difficulty.",
+  },
+  {
+    title: "Review",
+    description:
+      "Edit the generated draft, fix wording, reorder questions, and check every source excerpt.",
   },
   {
     title: "Share",
     description:
-      "Publish to generate a share link, then send it to your class wherever you already post links.",
-  },
-  {
-    title: "Get results",
-    description:
-      "Scores and per-question breakdowns are ready as soon as students submit.",
+      "Publish to get a link. Results and score summaries appear as attempts come in.",
   },
 ] as const;
 
@@ -77,23 +76,15 @@ const QUESTION_TYPES = [
     description: "A single statement, two choices, graded on submission.",
   },
   {
-    variant: "short-answer",
-    title: "Short answer",
-    description:
-      "Typed responses matched against the accepted answers you list.",
+    variant: "identification",
+    title: "Identification",
+    description: "A short answer matched against accepted answers and aliases.",
   },
-] as const;
-
-const TEACHER_POINTS = [
-  "Set a duration and an attempt limit for each quiz.",
-  "Write a question once and reuse it from the question bank.",
-  "See scores and the questions your students miss most.",
-] as const;
-
-const STUDENT_POINTS = [
-  "Open the share link, sign in, and start when you are ready.",
-  "Work through questions in order with the time remaining in view.",
-  "Review your score and past attempts from your dashboard.",
+  {
+    variant: "enumeration",
+    title: "Enumeration",
+    description: "A list of expected items with partial credit per correct item.",
+  },
 ] as const;
 
 export default function HomePage() {
@@ -109,7 +100,6 @@ export default function HomePage() {
       <SiteNav />
 
       <main id="main" className="flex-1">
-        {/* Hero */}
         <section className="relative overflow-hidden">
           <div
             aria-hidden="true"
@@ -123,16 +113,19 @@ export default function HomePage() {
           <Container className="relative">
             <div className="grid items-center gap-14 pb-16 pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:gap-16 lg:pb-24 lg:pt-20">
               <div className="max-w-xl">
-                <Badge variant="primary">Timers enforced on the server</Badge>
+                <Badge variant="primary">
+                  <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                  Generated from your study material
+                </Badge>
 
                 <h1 className="mt-6 text-balance text-4xl font-bold sm:text-5xl lg:text-6xl">
-                  Build a quiz in minutes. Grade it automatically.
+                  Turn your files into quizzes in minutes.
                 </h1>
 
                 <p className="mt-5 max-w-lg text-lg leading-relaxed text-muted-foreground">
-                  ExamMaker keeps the clock on the server, scores every response
-                  when it is submitted, and shows you which questions your class
-                  found hardest.
+                  Upload a document, review the generated questions, and share one
+                  link. ExamMaker keeps the clock on the server and scores every
+                  response when it is submitted.
                 </p>
 
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -148,12 +141,12 @@ export default function HomePage() {
                     asChild
                     className="w-full sm:w-auto"
                   >
-                    <a href="#question-types">Try a sample quiz</a>
+                    <a href="#question-types">See question types</a>
                   </Button>
                 </div>
 
                 <p className="mt-6 text-sm text-subtle-foreground">
-                  Server-enforced timing · Instant grading · Shareable links
+                  File-to-quiz generation · Server-enforced timing · Shareable links
                 </p>
               </div>
 
@@ -162,13 +155,12 @@ export default function HomePage() {
           </Container>
         </section>
 
-        {/* Features */}
         <Section id="features" aria-labelledby="features-heading">
           <SectionHeading
             id="features-heading"
             eyebrow="Features"
-            title="The clock, the marking, and the link — handled"
-            description="Timing, scoring, and sharing are built in — not bolted on."
+            title="From document to marked attempt"
+            description="The upload, the questions, the clock, and the link are handled in one place."
           />
 
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:gap-6">
@@ -183,7 +175,6 @@ export default function HomePage() {
           </div>
         </Section>
 
-        {/* How it works */}
         <Section
           id="how-it-works"
           tone="muted"
@@ -192,22 +183,21 @@ export default function HomePage() {
           <SectionHeading
             id="how-heading"
             eyebrow="How it works"
-            title="Create, share, review — in that order"
-            description="From a blank quiz to a marked attempt in three steps. No exports, no manual tallying."
+            title="Upload, review, share"
+            description="A draft is ready to edit before anything is published."
           />
           <Steps steps={[...STEPS]} className="mt-12" />
         </Section>
 
-        {/* Question types */}
         <Section id="question-types" aria-labelledby="types-heading">
           <SectionHeading
             id="types-heading"
             eyebrow="Question types"
-            title="Three formats, one grading engine"
+            title="Four formats, one grading engine"
             description="Mix formats in one quiz. Every answer is checked against the key you set."
           />
 
-          <div className="mt-12 grid gap-4 lg:grid-cols-3 lg:gap-6">
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
             {QUESTION_TYPES.map((type) => (
               <Card key={type.title} className="flex h-full flex-col p-5">
                 <h3 className="text-base font-semibold leading-heading">
@@ -224,67 +214,6 @@ export default function HomePage() {
           </div>
         </Section>
 
-        {/* Teachers and students */}
-        <Section tone="muted" aria-labelledby="audience-heading">
-          <SectionHeading
-            id="audience-heading"
-            eyebrow="Who it is for"
-            title="Two views, one quiz"
-            description="Teachers set the rules; students get a quiet screen with the clock in view."
-          />
-
-          <div className="mt-12 grid gap-4 lg:grid-cols-2 lg:gap-6">
-            <div className="h-full rounded-2xl border border-border bg-card p-6 lg:p-8">
-              <div className="flex items-center gap-3">
-                <span className="grid h-12 w-12 place-items-center rounded-xl bg-primary-tint text-primary-tint-foreground">
-                  <Users aria-hidden="true" className="h-6 w-6" />
-                </span>
-                <p className="text-xs font-semibold uppercase tracking-widest text-primary-text">
-                  For teachers
-                </p>
-              </div>
-              <h3 className="mt-5 text-2xl leading-heading">Set the rules once</h3>
-              <ul className="mt-4 space-y-3">
-                {TEACHER_POINTS.map((point) => (
-                  <li key={point} className="flex gap-3 text-base leading-relaxed text-muted-foreground">
-                    <Check
-                      aria-hidden="true"
-                      className="mt-1 h-4 w-4 shrink-0 text-primary-tint-foreground"
-                    />
-                    <span>{point}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="h-full rounded-2xl border border-border bg-card p-6 lg:p-8">
-              <div className="flex items-center gap-3">
-                <span className="grid h-12 w-12 place-items-center rounded-xl bg-primary-tint text-primary-tint-foreground">
-                  <GraduationCap aria-hidden="true" className="h-6 w-6" />
-                </span>
-                <p className="text-xs font-semibold uppercase tracking-widest text-primary-text">
-                  For students
-                </p>
-              </div>
-              <h3 className="mt-5 text-2xl leading-heading">
-                One link, one clear screen
-              </h3>
-              <ul className="mt-4 space-y-3">
-                {STUDENT_POINTS.map((point) => (
-                  <li key={point} className="flex gap-3 text-base leading-relaxed text-muted-foreground">
-                    <Check
-                      aria-hidden="true"
-                      className="mt-1 h-4 w-4 shrink-0 text-primary-tint-foreground"
-                    />
-                    <span>{point}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </Section>
-
-        {/* Final call to action */}
         <Section aria-labelledby="cta-heading">
           <div className="relative overflow-hidden rounded-2xl bg-primary px-6 py-12 shadow-lg ring-1 ring-inset ring-primary-foreground/10 sm:px-10 lg:px-16 lg:py-16">
             <div className="relative max-w-2xl">
@@ -292,10 +221,10 @@ export default function HomePage() {
                 id="cta-heading"
                 className="text-balance text-3xl font-bold text-primary-foreground sm:text-4xl"
               >
-                Your next quiz can grade itself.
+                Your next quiz can build itself.
               </h2>
               <p className="mt-4 text-base leading-relaxed text-primary-foreground/85">
-                Create an account, build a quiz, and share the link. Scoring runs
+                Create an account, upload a file, and review the draft. Scoring runs
                 on submit.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">

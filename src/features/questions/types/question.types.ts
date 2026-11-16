@@ -11,25 +11,27 @@ export interface QuestionOptionView {
   order: number;
 }
 
-export interface TeacherQuestionOptionView extends QuestionOptionView {
+/** Owner view: includes the answer key. Never send this to a taker. */
+export interface OwnerQuestionOptionView extends QuestionOptionView {
   isCorrect: boolean;
 }
 
-export interface StudentQuestionView {
+/** Taker view: the answer key is deliberately stripped. */
+export interface TakerQuestionView {
   id: string;
   type: QuestionType;
   prompt: string;
   points: number;
   order: number;
-  options: QuestionOptionView[]; // isCorrect is deliberately stripped
+  options: QuestionOptionView[];
 }
 
-export interface TeacherQuestionView {
+export interface OwnerQuestionView {
   id: string;
   type: QuestionType;
   prompt: string;
   explanation?: string | null;
   points: number;
   order: number;
-  options: TeacherQuestionOptionView[];
+  options: OwnerQuestionOptionView[];
 }

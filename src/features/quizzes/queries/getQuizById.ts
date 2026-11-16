@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { parseQuizSettings } from "../schemas/quiz.schema";
 
 export async function getQuizById(quizId: string) {
   const session = await auth();
@@ -14,15 +15,8 @@ export async function getQuizById(quizId: string) {
     },
     include: {
       questions: {
-        include: {
-          options: {
-            orderBy: {
-              order: "asc",
-            },
-          },
-        },
         orderBy: {
-          order: "asc",
+          position: "asc",
         },
       },
       _count: {
@@ -33,14 +27,12 @@ export async function getQuizById(quizId: string) {
     },
   });
 
-  if (!quiz) {
+  if (!quiz || quiz.ownerId !== session.user.id) {
     return null;
   }
 
-  // Only the creator (or admin) can view the full quiz for editing
-  if (quiz.authorId !== session.user.id && session.user.role !== "ADMIN") {
-    return null;
-  }
-
-  return quiz;
+  return {
+    ...quiz,
+    settings: parseQuizSettings(quiz.settings),
+  };
 }

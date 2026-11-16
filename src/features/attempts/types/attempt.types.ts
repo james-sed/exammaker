@@ -1,4 +1,4 @@
-import { StudentQuestionView } from "../../questions/types/question.types";
+import { TakerQuestionView } from "../../questions/types/question.types";
 
 export type AttemptStatus =
   | "IN_PROGRESS"
@@ -14,7 +14,7 @@ export interface ActiveExamSession {
   startedAt: string;
   expiresAt: string | null;
   timeLimitMinutes: number | null;
-  questions: StudentQuestionView[];
+  questions: TakerQuestionView[];
   answers: Record<string, { selectedOptionId?: string | null; textAnswer?: string | null }>;
 }
 

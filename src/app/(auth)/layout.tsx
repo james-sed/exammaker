@@ -21,7 +21,7 @@ export default function AuthLayout({
             </span>
           </Link>
           <p className="text-sm text-muted-foreground mt-2">
-            The intelligent platform for building and taking exams
+            Turn your files into quizzes in minutes
           </p>
         </div>
 

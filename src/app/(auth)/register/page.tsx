@@ -10,7 +10,7 @@ import {
 
 export const metadata: Metadata = {
   title: "Create an Account | ExamMaker",
-  description: "Sign up for ExamMaker as a teacher or student",
+  description: "Turn your files into quizzes in minutes.",
 };
 
 export default function RegisterPage() {
@@ -18,9 +18,7 @@ export default function RegisterPage() {
     <Card className="shadow-lg border-slate-200">
       <CardHeader className="space-y-1 text-center">
         <CardTitle className="text-xl font-bold">Create your account</CardTitle>
-        <CardDescription>
-          Choose your role and start crafting or taking quizzes in seconds
-        </CardDescription>
+        <CardDescription>Turn your files into quizzes in minutes.</CardDescription>
       </CardHeader>
       <CardContent>
         <RegisterForm />

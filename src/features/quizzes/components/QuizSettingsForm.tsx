@@ -4,37 +4,47 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { Loader2, AlertCircle, CheckCircle2, Clock, Shuffle, CheckSquare } from "lucide-react";
-import { quizSettingsSchema, QuizSettingsInput } from "../schemas/quiz.schema";
+import { Loader2, AlertCircle, CheckCircle2, Clock, Shuffle } from "lucide-react";
+import {
+  quizSettingsSchema,
+  QuizSettingsInput,
+  QuizSettingsData,
+  defaultQuizSettings,
+} from "../schemas/quiz.schema";
 import { createQuiz } from "../actions/createQuiz";
 import { updateQuiz } from "../actions/updateQuiz";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface QuizSettingsFormProps {
   initialData?: {
     id: string;
     title: string;
     description?: string | null;
-    timeLimitMinutes?: number | null;
-    maxAttempts: number;
-    shuffleQuestions: boolean;
-    shuffleOptions: boolean;
-    isPublished: boolean;
+    settings: QuizSettingsData;
   };
 }
 
 export function QuizSettingsForm({ initialData }: QuizSettingsFormProps) {
   const router = useRouter();
   const isEditing = Boolean(initialData);
+  const settings = initialData?.settings ?? defaultQuizSettings;
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [hasTimeLimit, setHasTimeLimit] = useState(Boolean(initialData?.timeLimitMinutes));
+  const [hasTimeLimit, setHasTimeLimit] = useState(
+    Boolean(settings.timeLimitMinutes)
+  );
 
   const {
     register,
@@ -47,16 +57,12 @@ export function QuizSettingsForm({ initialData }: QuizSettingsFormProps) {
     defaultValues: {
       title: initialData?.title || "",
       description: initialData?.description || "",
-      timeLimitMinutes: initialData?.timeLimitMinutes ?? 30,
-      maxAttempts: initialData?.maxAttempts ?? 1,
-      shuffleQuestions: initialData?.shuffleQuestions ?? false,
-      shuffleOptions: initialData?.shuffleOptions ?? false,
-      isPublished: initialData?.isPublished ?? false,
+      timeLimitMinutes: settings.timeLimitMinutes ?? 30,
+      attemptLimit: settings.attemptLimit,
+      shuffleOptions: settings.shuffleOptions,
     },
   });
 
-  const isPublished = watch("isPublished");
-  const shuffleQuestions = watch("shuffleQuestions");
   const shuffleOptions = watch("shuffleOptions");
 
   const onSubmit = async (data: QuizSettingsInput) => {
@@ -76,7 +82,7 @@ export function QuizSettingsForm({ initialData }: QuizSettingsFormProps) {
         setIsLoading(false);
         return;
       }
-      setSuccessMessage("Quiz settings updated successfully!");
+      setSuccessMessage("Quiz settings updated.");
       setIsLoading(false);
       router.refresh();
     } else {
@@ -86,82 +92,92 @@ export function QuizSettingsForm({ initialData }: QuizSettingsFormProps) {
         setIsLoading(false);
         return;
       }
-      // Redirect to edit page where teacher can add questions
       router.push(`/quizzes/${res.quizId}/edit`);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-3xl">
+    <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl space-y-6" noValidate>
       {errorMessage && (
-        <div className="flex items-center gap-2 rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
-          <AlertCircle className="h-4 w-4 shrink-0" />
+        <div
+          role="alert"
+          className="flex items-center gap-2 rounded-lg border border-destructive-fill/20 bg-destructive-tint p-4 text-sm text-destructive-tint-foreground"
+        >
+          <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {successMessage && (
-        <div className="flex items-center gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700 border border-green-200">
-          <CheckCircle2 className="h-4 w-4 shrink-0" />
+        <div
+          role="status"
+          className="flex items-center gap-2 rounded-lg border border-success-fill/20 bg-success-tint p-4 text-sm text-success-tint-foreground"
+        >
+          <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span>{successMessage}</span>
         </div>
       )}
 
-      {/* Basic Info */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base font-semibold">General Information</CardTitle>
-          <CardDescription>
-            Specify the title and instructions for students.
-          </CardDescription>
+          <CardTitle className="text-base font-semibold">General information</CardTitle>
+          <CardDescription>Name the quiz and add instructions for takers.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Quiz Title *</Label>
+            <Label htmlFor="title">Quiz title *</Label>
             <Input
               id="title"
-              placeholder="e.g. Biology Midterm Exam - Fall 2026"
+              placeholder="e.g. Biology midterm review"
               disabled={isLoading}
+              aria-invalid={Boolean(errors.title)}
+              aria-describedby={errors.title ? "title-error" : undefined}
               {...register("title")}
             />
             {errors.title && (
-              <p className="text-xs text-red-500">{errors.title.message}</p>
+              <p id="title-error" className="text-xs text-destructive-text">
+                {errors.title.message}
+              </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Instructions / Description</Label>
+            <Label htmlFor="description">Instructions / description</Label>
             <Textarea
               id="description"
-              placeholder="Add instructions, guidelines, or topics covered in this assessment..."
+              placeholder="Add instructions, rules, or the topics covered..."
               rows={4}
               disabled={isLoading}
+              aria-invalid={Boolean(errors.description)}
+              aria-describedby={errors.description ? "description-error" : undefined}
               {...register("description")}
             />
             {errors.description && (
-              <p className="text-xs text-red-500">{errors.description.message}</p>
+              <p id="description-error" className="text-xs text-destructive-text">
+                {errors.description.message}
+              </p>
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Timing and Attempts */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <Clock className="h-4 w-4 text-primary" /> Timing &amp; Attempt Rules
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
+            <Clock className="h-4 w-4 text-primary" aria-hidden="true" /> Timing &amp;
+            attempts
           </CardTitle>
           <CardDescription>
-            Configure time limits and how many times a student can take this quiz.
+            Configure the time limit and how many attempts each taker gets.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <Label className="text-sm font-semibold">Enforce Time Limit</Label>
+                <Label className="text-sm font-semibold">Enforce time limit</Label>
                 <p className="text-xs text-muted-foreground">
-                  Submissions after this time expires will be blocked or auto-graded.
+                  Late submissions are rejected or auto-submitted by the server.
                 </p>
               </div>
               <input
@@ -173,123 +189,85 @@ export function QuizSettingsForm({ initialData }: QuizSettingsFormProps) {
                     setValue("timeLimitMinutes", 30);
                   }
                 }}
-                className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer"
+                className="h-4 w-4 cursor-pointer rounded border-input text-primary focus:ring-ring"
+                aria-label="Enforce time limit"
               />
             </div>
 
             {hasTimeLimit && (
-              <div className="pl-4 border-l-2 border-primary/20 space-y-2 pt-1">
-                <Label htmlFor="timeLimitMinutes">Duration (in minutes)</Label>
-                <div className="flex items-center gap-2 max-w-xs">
+              <div className="space-y-2 border-l-2 border-primary/20 pl-4 pt-1">
+                <Label htmlFor="timeLimitMinutes">Duration (minutes)</Label>
+                <div className="flex max-w-xs items-center gap-2">
                   <Input
                     id="timeLimitMinutes"
                     type="number"
                     min={1}
                     max={1440}
                     disabled={isLoading}
+                    aria-invalid={Boolean(errors.timeLimitMinutes)}
+                    aria-describedby={
+                      errors.timeLimitMinutes ? "time-limit-error" : undefined
+                    }
                     {...register("timeLimitMinutes")}
                   />
-                  <span className="text-sm text-slate-500">minutes</span>
+                  <span className="text-sm text-muted-foreground">minutes</span>
                 </div>
                 {errors.timeLimitMinutes && (
-                  <p className="text-xs text-red-500">{errors.timeLimitMinutes.message}</p>
+                  <p id="time-limit-error" className="text-xs text-destructive-text">
+                    {errors.timeLimitMinutes.message}
+                  </p>
                 )}
               </div>
             )}
           </div>
 
-          <div className="space-y-2 pt-2 border-t border-slate-100">
-            <Label htmlFor="maxAttempts">Maximum Allowed Attempts</Label>
+          <div className="space-y-2 border-t border-border pt-4">
+            <Label htmlFor="attemptLimit">Attempt limit</Label>
             <p className="text-xs text-muted-foreground">
-              Number of times a student can take this exam (default: 1).
+              Maximum number of attempts per taker (default: 1).
             </p>
             <Input
-              id="maxAttempts"
+              id="attemptLimit"
               type="number"
               min={1}
               max={100}
               className="max-w-xs"
               disabled={isLoading}
-              {...register("maxAttempts")}
+              aria-invalid={Boolean(errors.attemptLimit)}
+              aria-describedby={errors.attemptLimit ? "attempt-limit-error" : undefined}
+              {...register("attemptLimit")}
             />
-            {errors.maxAttempts && (
-              <p className="text-xs text-red-500">{errors.maxAttempts.message}</p>
+            {errors.attemptLimit && (
+              <p id="attempt-limit-error" className="text-xs text-destructive-text">
+                {errors.attemptLimit.message}
+              </p>
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Anti-Cheating & Randomization */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <Shuffle className="h-4 w-4 text-primary" /> Randomization &amp; Shuffling
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
+            <Shuffle className="h-4 w-4 text-primary" aria-hidden="true" /> Option
+            shuffling
           </CardTitle>
           <CardDescription>
-            Prevent cheating by presenting questions and choices in randomized order.
+            Present multiple-choice options in a different order for each attempt.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={shuffleQuestions}
-              onChange={(e) => setValue("shuffleQuestions", e.target.checked)}
-              className="mt-1 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
-            />
-            <div>
-              <span className="text-sm font-medium text-slate-900">
-                Shuffle Questions
-              </span>
-              <p className="text-xs text-muted-foreground">
-                Each student receives questions in a different randomized order.
-              </p>
-            </div>
-          </label>
-
-          <label className="flex items-start gap-3 cursor-pointer">
+        <CardContent>
+          <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
               checked={shuffleOptions}
               onChange={(e) => setValue("shuffleOptions", e.target.checked)}
-              className="mt-1 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+              className="mt-1 h-4 w-4 rounded border-input text-primary focus:ring-ring"
             />
             <div>
-              <span className="text-sm font-medium text-slate-900">
-                Shuffle Answer Choices
-              </span>
+              <span className="text-sm font-medium text-foreground">Shuffle options</span>
               <p className="text-xs text-muted-foreground">
-                Answer options within Multiple Choice questions are shuffled randomly.
-              </p>
-            </div>
-          </label>
-        </CardContent>
-      </Card>
-
-      {/* Publishing Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <CheckSquare className="h-4 w-4 text-primary" /> Publication Status
-          </CardTitle>
-          <CardDescription>
-            Published quizzes can be accessed by students with the link.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={isPublished}
-              onChange={(e) => setValue("isPublished", e.target.checked)}
-              className="mt-1 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
-            />
-            <div>
-              <span className="text-sm font-medium text-slate-900">
-                Publish this quiz immediately
-              </span>
-              <p className="text-xs text-muted-foreground">
-                When unchecked, the quiz remains a private draft.
+                Does not change which option is correct.
               </p>
             </div>
           </label>
@@ -308,13 +286,13 @@ export function QuizSettingsForm({ initialData }: QuizSettingsFormProps) {
         <Button type="submit" disabled={isLoading} className="min-w-[140px]">
           {isLoading ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
               Saving...
             </>
           ) : isEditing ? (
-            "Save Changes"
+            "Save changes"
           ) : (
-            "Create & Add Questions"
+            "Create quiz"
           )}
         </Button>
       </div>

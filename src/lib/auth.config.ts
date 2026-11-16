@@ -1,5 +1,17 @@
 import type { NextAuthConfig } from "next-auth";
 
+function isOwnerRoute(pathname: string) {
+  return (
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/quizzes") ||
+    pathname.startsWith("/settings")
+  );
+}
+
+function isAuthRoute(pathname: string) {
+  return pathname.startsWith("/login") || pathname.startsWith("/register");
+}
+
 export const authConfig: NextAuthConfig = {
   pages: {
     signIn: "/login",
@@ -8,48 +20,35 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = Boolean(auth?.user);
-      const userRole = auth?.user?.role;
+      const { pathname } = nextUrl;
 
-      const isAuthRoute =
-        nextUrl.pathname.startsWith("/login") ||
-        nextUrl.pathname.startsWith("/register");
-      const isTeacherRoute = nextUrl.pathname.startsWith("/quizzes") || nextUrl.pathname.startsWith("/question-bank");
-      const isStudentRoute = nextUrl.pathname.startsWith("/dashboard") || nextUrl.pathname.startsWith("/history");
-      const isExamRoute = nextUrl.pathname.startsWith("/quiz/");
-
-      if (isAuthRoute) {
+      if (isAuthRoute(pathname)) {
         if (isLoggedIn) {
-          const destination = userRole === "TEACHER" ? "/quizzes" : "/dashboard";
-          return Response.redirect(new URL(destination, nextUrl));
+          return Response.redirect(new URL("/dashboard", nextUrl));
         }
         return true;
       }
 
-      if (isTeacherRoute) {
-        if (!isLoggedIn) return false;
-        return userRole === "TEACHER" || userRole === "ADMIN";
-      }
-
-      if (isStudentRoute || isExamRoute) {
+      // Owner routes require a session. Everything else, including
+      // /q/[shareId] and the marketing pages, stays public.
+      if (isOwnerRoute(pathname)) {
         return isLoggedIn;
       }
 
       return true;
     },
     jwt({ token, user }) {
-      if (user) {
-        token.id = user.id as string;
-        token.role = user.role as "TEACHER" | "STUDENT" | "ADMIN";
+      if (user?.id) {
+        token.id = user.id;
       }
       return token;
     },
     session({ session, token }) {
-      if (session.user && token) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as "TEACHER" | "STUDENT" | "ADMIN";
+      if (session.user) {
+        session.user.id = (token.id ?? token.sub) as string;
       }
       return session;
     },
   },
-  providers: [], // Configured with Credentials & OAuth in auth.ts (node runtime)
+  providers: [], // Configured with Credentials & Google in auth.ts (node runtime)
 };

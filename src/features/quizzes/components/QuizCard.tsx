@@ -7,7 +7,6 @@ import {
   HelpCircle,
   Users,
   Edit,
-  BarChart2,
   Share2,
   Trash2,
   Globe,
@@ -20,16 +19,17 @@ import { Button } from "@/components/ui/button";
 import { ShareLinkModal } from "./ShareLinkModal";
 import { togglePublish } from "../actions/togglePublish";
 import { deleteQuiz } from "../actions/deleteQuiz";
+import type { QuizSettingsData } from "../schemas/quiz.schema";
+import type { QuizStatus } from "../types/quiz.types";
 
 interface QuizCardProps {
   quiz: {
     id: string;
     title: string;
     description?: string | null;
-    timeLimitMinutes?: number | null;
-    maxAttempts: number;
-    isPublished: boolean;
-    shareCode: string;
+    status: QuizStatus;
+    shareId: string;
+    settings: QuizSettingsData;
     _count?: {
       questions: number;
       attempts: number;
@@ -41,19 +41,25 @@ export function QuizCard({ quiz }: QuizCardProps) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isPublished, setIsPublished] = useState(quiz.isPublished);
+  const [status, setStatus] = useState<QuizStatus>(quiz.status);
+  const [publishError, setPublishError] = useState<string | null>(null);
+
+  const isPublished = status === "PUBLISHED";
 
   const handleTogglePublish = async () => {
     setIsPublishing(true);
+    setPublishError(null);
     const res = await togglePublish(quiz.id);
-    if (res.success && typeof res.isPublished === "boolean") {
-      setIsPublished(res.isPublished);
+    if (res.success && res.status) {
+      setStatus(res.status);
+    } else {
+      setPublishError(res.error || "Could not update the quiz.");
     }
     setIsPublishing(false);
   };
 
   const handleDelete = async () => {
-    if (!confirm(`Are you sure you want to delete "${quiz.title}"? This cannot be undone.`)) {
+    if (!confirm(`Delete "${quiz.title}"? This cannot be undone.`)) {
       return;
     }
     setIsDeleting(true);
@@ -63,61 +69,66 @@ export function QuizCard({ quiz }: QuizCardProps) {
 
   return (
     <>
-      <Card className="flex flex-col justify-between hover:shadow-md transition-shadow border-slate-200">
+      <Card className="flex flex-col justify-between border-border transition-shadow duration-150 ease-out hover:shadow-md">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-lg font-bold text-slate-900 line-clamp-1">
+            <CardTitle className="line-clamp-1 text-lg font-bold text-foreground">
               {quiz.title}
             </CardTitle>
-            <Badge variant={isPublished ? "default" : "secondary"}>
+            <Badge variant={isPublished ? "primary" : "neutral"}>
               {isPublished ? (
                 <span className="flex items-center gap-1">
-                  <Globe className="h-3 w-3" /> Published
+                  <Globe className="h-3 w-3" aria-hidden="true" /> Published
                 </span>
               ) : (
                 <span className="flex items-center gap-1">
-                  <Lock className="h-3 w-3" /> Draft
+                  <Lock className="h-3 w-3" aria-hidden="true" /> Draft
                 </span>
               )}
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
             {quiz.description || "No description provided."}
           </p>
         </CardHeader>
 
         <CardContent className="pb-4">
-          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600">
-            <div className="flex items-center gap-1" title="Time Limit">
-              <Clock className="h-3.5 w-3.5 text-slate-400" />
+          <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1" title="Time limit">
+              <Clock className="h-3.5 w-3.5 text-subtle-foreground" aria-hidden="true" />
               <span>
-                {quiz.timeLimitMinutes ? `${quiz.timeLimitMinutes} min` : "Untimed"}
+                {quiz.settings.timeLimitMinutes
+                  ? `${quiz.settings.timeLimitMinutes} min`
+                  : "Untimed"}
               </span>
             </div>
 
-            <div className="flex items-center gap-1" title="Question Count">
-              <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
+            <div className="flex items-center gap-1" title="Question count">
+              <HelpCircle
+                className="h-3.5 w-3.5 text-subtle-foreground"
+                aria-hidden="true"
+              />
               <span>{quiz._count?.questions ?? 0} questions</span>
             </div>
 
-            <div className="flex items-center gap-1" title="Total Attempts">
-              <Users className="h-3.5 w-3.5 text-slate-400" />
+            <div className="flex items-center gap-1" title="Attempts">
+              <Users className="h-3.5 w-3.5 text-subtle-foreground" aria-hidden="true" />
               <span>{quiz._count?.attempts ?? 0} attempts</span>
             </div>
           </div>
+
+          {publishError && (
+            <p className="mt-3 text-xs text-destructive-text" role="alert">
+              {publishError}
+            </p>
+          )}
         </CardContent>
 
-        <CardFooter className="pt-3 border-t border-slate-100 flex items-center justify-between">
+        <CardFooter className="flex items-center justify-between border-t border-border pt-3">
           <div className="flex items-center gap-1">
             <Link href={`/quizzes/${quiz.id}/edit`}>
               <Button variant="ghost" size="sm" className="h-8 px-2 text-xs">
-                <Edit className="h-3.5 w-3.5 mr-1" /> Edit
-              </Button>
-            </Link>
-
-            <Link href={`/quizzes/${quiz.id}/analytics`}>
-              <Button variant="ghost" size="sm" className="h-8 px-2 text-xs">
-                <BarChart2 className="h-3.5 w-3.5 mr-1" /> Analytics
+                <Edit className="h-3.5 w-3.5" aria-hidden="true" /> Edit
               </Button>
             </Link>
 
@@ -126,8 +137,9 @@ export function QuizCard({ quiz }: QuizCardProps) {
               size="sm"
               className="h-8 px-2 text-xs"
               onClick={() => setIsShareModalOpen(true)}
+              disabled={!isPublished}
             >
-              <Share2 className="h-3.5 w-3.5 mr-1" /> Share
+              <Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share
             </Button>
           </div>
 
@@ -140,7 +152,7 @@ export function QuizCard({ quiz }: QuizCardProps) {
               onClick={handleTogglePublish}
             >
               {isPublishing ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
               ) : isPublished ? (
                 "Unpublish"
               ) : (
@@ -151,15 +163,16 @@ export function QuizCard({ quiz }: QuizCardProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 px-2 text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
+              className="h-8 px-2 text-xs text-destructive-text hover:bg-destructive-tint"
               disabled={isDeleting}
               onClick={handleDelete}
-              title="Delete Quiz"
+              title="Delete quiz"
+              aria-label={`Delete ${quiz.title}`}
             >
               {isDeleting ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
               ) : (
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
               )}
             </Button>
           </div>
@@ -170,7 +183,7 @@ export function QuizCard({ quiz }: QuizCardProps) {
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
         quizTitle={quiz.title}
-        shareCode={quiz.shareCode}
+        shareId={quiz.shareId}
       />
     </>
   );

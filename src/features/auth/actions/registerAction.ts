@@ -21,10 +21,9 @@ export async function registerAction(input: RegisterInput): Promise<AuthActionRe
       };
     }
 
-    const { name, email, password, role } = validated.data;
+    const { name, email, password } = validated.data;
     const normalizedEmail = email.toLowerCase();
 
-    // Check for existing user
     const existingUser = await db.user.findUnique({
       where: { email: normalizedEmail },
     });
@@ -36,16 +35,13 @@ export async function registerAction(input: RegisterInput): Promise<AuthActionRe
       };
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     await db.user.create({
       data: {
         name,
         email: normalizedEmail,
         password: hashedPassword,
-        role,
       },
     });
 

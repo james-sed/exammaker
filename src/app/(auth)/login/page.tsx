@@ -19,12 +19,16 @@ export default function LoginPage() {
     <Card className="shadow-lg border-slate-200">
       <CardHeader className="space-y-1 text-center">
         <CardTitle className="text-xl font-bold">Welcome back</CardTitle>
-        <CardDescription>
-          Enter your credentials to access your quizzes and dashboard
-        </CardDescription>
+        <CardDescription>Sign in to manage your quizzes.</CardDescription>
       </CardHeader>
       <CardContent>
-        <Suspense fallback={<div className="h-40 flex items-center justify-center text-sm text-muted-foreground">Loading...</div>}>
+        <Suspense
+          fallback={
+            <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+              Loading...
+            </div>
+          }
+        >
           <LoginForm />
         </Suspense>
       </CardContent>

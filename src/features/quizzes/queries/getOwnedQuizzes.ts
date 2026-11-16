@@ -1,7 +1,8 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { parseQuizSettings } from "../schemas/quiz.schema";
 
-export async function getQuizzesByTeacher() {
+export async function getOwnedQuizzes() {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -10,7 +11,7 @@ export async function getQuizzesByTeacher() {
 
   const quizzes = await db.quiz.findMany({
     where: {
-      authorId: session.user.id,
+      ownerId: session.user.id,
     },
     include: {
       _count: {
@@ -25,5 +26,8 @@ export async function getQuizzesByTeacher() {
     },
   });
 
-  return quizzes;
+  return quizzes.map((quiz) => ({
+    ...quiz,
+    settings: parseQuizSettings(quiz.settings),
+  }));
 }

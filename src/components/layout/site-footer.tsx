@@ -68,7 +68,7 @@ export function SiteFooter() {
           <p>
             © {new Date().getFullYear()} {APP_NAME}. All rights reserved.
           </p>
-          <p>Built for teachers and students.</p>
+          <p>Turn your files into quizzes in minutes.</p>
         </div>
       </Container>
     </footer>

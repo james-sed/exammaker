@@ -21,17 +21,16 @@ export async function updateQuiz(
       return { success: false, error: "Unauthorized. Please sign in." };
     }
 
-    const quiz = await db.quiz.findUnique({
-      where: { id: quizId },
-      select: { authorId: true },
+    const quiz = await db.quiz.findFirst({
+      where: {
+        id: quizId,
+        ownerId: session.user.id,
+      },
+      select: { id: true },
     });
 
     if (!quiz) {
       return { success: false, error: "Quiz not found." };
-    }
-
-    if (quiz.authorId !== session.user.id && session.user.role !== "ADMIN") {
-      return { success: false, error: "Forbidden. You can only edit your own quizzes." };
     }
 
     const validated = quizSettingsSchema.safeParse(input);
@@ -47,10 +46,8 @@ export async function updateQuiz(
       title,
       description,
       timeLimitMinutes,
-      maxAttempts,
-      shuffleQuestions,
+      attemptLimit,
       shuffleOptions,
-      isPublished,
     } = validated.data;
 
     await db.quiz.update({
@@ -58,14 +55,15 @@ export async function updateQuiz(
       data: {
         title,
         description: description || null,
-        timeLimitMinutes: timeLimitMinutes || null,
-        maxAttempts,
-        shuffleQuestions,
-        shuffleOptions,
-        isPublished,
+        settings: {
+          timeLimitMinutes: timeLimitMinutes ?? null,
+          attemptLimit,
+          shuffleOptions,
+        },
       },
     });
 
+    revalidatePath("/dashboard");
     revalidatePath("/quizzes");
     revalidatePath(`/quizzes/${quizId}/edit`);
 

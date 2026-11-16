@@ -42,9 +42,7 @@ export function SiteNav() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
-  const isStaff =
-    session?.user?.role === "TEACHER" || session?.user?.role === "ADMIN";
-  const dashboardHref = isStaff ? "/quizzes" : "/dashboard";
+  const dashboardHref = "/dashboard";
   const solid = scrolled || open;
 
   return (
