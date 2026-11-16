@@ -1,11 +1,6 @@
-import { TakerQuestionView } from "../../questions/types/question.types";
+import type { PublicQuestion } from "../../questions/types/question.types";
 
-export type AttemptStatus =
-  | "IN_PROGRESS"
-  | "SUBMITTED"
-  | "EXPIRED"
-  | "GRADED"
-  | "NEEDS_REVIEW";
+export type AttemptStatus = "IN_PROGRESS" | "SUBMITTED" | "EXPIRED";
 
 export interface ActiveExamSession {
   attemptId: string;
@@ -14,8 +9,8 @@ export interface ActiveExamSession {
   startedAt: string;
   expiresAt: string | null;
   timeLimitMinutes: number | null;
-  questions: TakerQuestionView[];
-  answers: Record<string, { selectedOptionId?: string | null; textAnswer?: string | null }>;
+  questions: PublicQuestion[];
+  answers: Record<string, unknown>;
 }
 
 export interface AttemptResultSummary {
