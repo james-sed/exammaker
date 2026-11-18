@@ -27,6 +27,7 @@ model User {
   sessions       Session[]
   quizzes        Quiz[]          @relation("QuizOwner")
   generationJobs GenerationJob[]
+  sourceFiles    SourceFile[]
 
   @@index([email])
 }
@@ -118,31 +119,45 @@ enum SourceStatus {
 }
 
 model SourceFile {
-  id     String @id @default(cuid())
-  quizId String @unique
-  quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // Null until generation creates the draft quiz. Unique so a quiz has at most
+  // one source. Unattached sources are removed by the janitor after 7 days.
+  quizId String? @unique
+  quiz   Quiz?   @relation(fields: [quizId], references: [id], onDelete: Cascade)
 
   originalName String
   mimeType     String
   sizeBytes    Int
 
-  // Cleared as soon as extraction finishes; the binary is not retained.
-  blobKey     String?
-  status      SourceStatus @default(UPLOADED)
-  errorReason String?      @db.Text
+  // Blob pathname for the uploaded binary. Set when the upload token is issued,
+  // cleared as soon as extraction finishes and the binary is deleted. Kept when
+  // deletion fails so the janitor can retry it.
+  blobKey            String?   @unique
+  blobDeleteFailedAt DateTime?
+  status             SourceStatus @default(UPLOADED)
+  errorReason        String?      @db.Text
 
-  // Sanitized text is retained so questions can be regenerated.
-  // It is deleted with the quiz.
+  // Sanitized text and per-page/section text are retained so questions can be
+  // regenerated. They are deleted with the quiz.
   extractedText String? @db.Text
-  pageCount     Int?
-  charCount     Int?
+  // [{ index: number, text: string }] indexed from 1, preserving PDF pages,
+  // PPTX slides, and DOCX explicit page breaks.
+  pages     Json?
+  pageCount Int?
+  charCount Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   generationJobs GenerationJob[]
 
+  @@index([ownerId])
+  @@index([ownerId, createdAt])
   @@index([status])
+  @@index([status, updatedAt])
   @@index([createdAt])
 }
 

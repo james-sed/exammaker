@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/jobs/janitor",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}
