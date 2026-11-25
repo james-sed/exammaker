@@ -103,3 +103,18 @@ Pipeline: upload, store, extract text, chunk, generate, validate, draft quiz, us
 - At the end of each step run build, lint, typecheck, and tests. Fix failures.
 - Finish with a short summary: what changed, what's left, and any decisions that need my input.
 - Ask before making a decision this spec doesn't cover.
+
+## Confirmed decisions (from Step 1)
+
+- Storage: Vercel Blob, private store, direct client upload.
+- Quiz takers: no sign-in. Anonymous attempt token + optional display name.
+- Retention: raw file binary deleted immediately after extraction.
+  Sanitized extracted text is kept until the quiz is deleted.
+- Question edits: locked on first attempt (Quiz.questionsLockedAt).
+  To change a locked quiz, the owner duplicates it.
+- Limits: 5 generations per user per rolling 24h, 1 concurrent
+  generation per user, 20 MB file size, 150 pages, 200k extracted
+  characters, 50 questions per generation.
+- Job runner: Vercel Queues, topic `quiz-generation`, consumer
+  POST /api/jobs/generation, 2 retries, 300s maxDuration. Cron is used
+  only as a stale-job janitor.
