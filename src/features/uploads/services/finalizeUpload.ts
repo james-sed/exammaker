@@ -102,14 +102,15 @@ async function failUnverifiedUpload(
  * Called by the browser after a direct upload resolves. Vercel Blob's
  * upload-completed callback does not fire on localhost, so this route is the
  * source of truth: it verifies ownership, existence, and size, then claims the
- * extraction. Calling it twice is safe.
+ * extraction. Lookups use `blobPathname`, which survives extraction, so calling
+ * this after the binary is gone returns the finished source instead of a 404.
  */
 export async function finalizeUpload(input: {
   ownerId: string;
   pathname: string;
 }): Promise<FinalizeOutcome> {
   const source = await db.sourceFile.findFirst({
-    where: { blobKey: input.pathname, ownerId: input.ownerId },
+    where: { blobPathname: input.pathname, ownerId: input.ownerId },
   });
 
   if (!source) return { kind: "not_found" };

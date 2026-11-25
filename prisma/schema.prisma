@@ -132,9 +132,13 @@ model SourceFile {
   mimeType     String
   sizeBytes    Int
 
-  // Blob pathname for the uploaded binary. Set when the upload token is issued,
-  // cleared as soon as extraction finishes and the binary is deleted. Kept when
-  // deletion fails so the janitor can retry it.
+  // Blob pathname chosen when the upload token is issued. Never cleared, so a
+  // repeated finalize call can always find its row after extraction finished.
+  blobPathname String? @unique
+
+  // Blob pathname for the binary while it still exists. Cleared as soon as
+  // extraction finishes and the binary is deleted. Kept when deletion fails so
+  // the janitor can retry it.
   blobKey            String?   @unique
   blobDeleteFailedAt DateTime?
   status             SourceStatus @default(UPLOADED)

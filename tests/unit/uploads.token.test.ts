@@ -60,6 +60,7 @@ describe("ensureSourceFileForUpload", () => {
         originalName: "notes.pdf",
         mimeType: "application/pdf",
         sizeBytes: 4_096,
+        blobPathname: PATHNAME,
         blobKey: PATHNAME,
         status: "UPLOADED",
       },

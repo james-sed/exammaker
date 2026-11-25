@@ -75,7 +75,7 @@ export async function ensureSourceFileForUpload(input: {
   }
 
   const existing = await db.sourceFile.findUnique({
-    where: { blobKey: input.pathname },
+    where: { blobPathname: input.pathname },
     select: {
       id: true,
       ownerId: true,
@@ -112,6 +112,7 @@ export async function ensureSourceFileForUpload(input: {
       originalName: payload.name,
       mimeType,
       sizeBytes: payload.size,
+      blobPathname: input.pathname,
       blobKey: input.pathname,
       status: "UPLOADED",
     },

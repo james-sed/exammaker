@@ -50,6 +50,7 @@ This is an early build. Auth, quiz management, question schemas, the grading cor
    | `DIRECT_URL` | **Direct, non-pooled** connection (used by Prisma migrations) |
    | `AUTH_SECRET` | Random secret for Auth.js (`npx auth secret` can generate one) |
    | `NEXTAUTH_URL` | App URL, e.g. `http://localhost:3000` |
+   | `AUTH_TRUST_HOST` | `true` when serving `next start` outside Vercel (Vercel trusts its own host automatically) |
    | `NEXT_PUBLIC_APP_URL` | Public app URL used in share links |
    | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Optional; omit both to hide Google sign-in |
    | `BLOB_READ_WRITE_TOKEN` | Read/write token for the private Blob store |
@@ -102,7 +103,7 @@ The app only accepts blobs stored on the private host. The browser picks `access
 - Accepted types: PDF, DOCX, PPTX, TXT.
 - Limits: **20 MB** per file, **150 pages**, and **200,000** extracted characters.
 - Each upload gets `sources/<userId>/<uuid>` as its pathname, and a `SourceFile` row is created *before* the binary moves.
-- The browser calls `POST /api/uploads/finalize` itself after the upload resolves. Blob's `onUploadCompleted` callback is deliberately not used.
+- The browser calls `POST /api/uploads/finalize` itself after the upload resolves. Blob's `onUploadCompleted` callback is deliberately not used. Finalize is idempotent: repeating it returns the same source, even after the binary is gone.
 - Extraction verifies magic bytes, extension, page count, password protection, corruption, and readable text. Spoofed, scanned, encrypted, corrupt, and oversized files fail with a user-safe message.
 - Sanitized text is saved first, then the binary is deleted. If deletion fails, the row keeps `blobKey`, sets `blobDeleteFailedAt`, and the janitor retries.
 - A failed extraction can be retried while its binary still exists.

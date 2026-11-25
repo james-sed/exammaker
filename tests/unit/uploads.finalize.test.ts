@@ -47,6 +47,8 @@ interface RowOverrides {
   blobKey?: string | null;
   updatedAt?: Date;
   sizeBytes?: number;
+  pageCount?: number | null;
+  charCount?: number | null;
 }
 
 function row(overrides: RowOverrides = {}) {
@@ -60,6 +62,7 @@ function row(overrides: RowOverrides = {}) {
     pageCount: null,
     charCount: null,
     quizId: null,
+    blobPathname: PATHNAME,
     blobKey: PATHNAME,
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
     updatedAt: new Date(),
@@ -125,6 +128,28 @@ describe("finalizeUpload", () => {
 
     expect(outcome.kind === "ok" && outcome.result.inProgress).toBe(false);
     expect(headMock).not.toHaveBeenCalled();
+  });
+
+  it("returns the finished source when finalize repeats after the binary is gone", async () => {
+    findFirst.mockResolvedValue(
+      row({ status: "READY", blobKey: null, pageCount: 2, charCount: 154 }) as never
+    );
+
+    const outcome = await finalizeUpload({ ownerId: OWNER, pathname: PATHNAME });
+
+    expect(outcome.kind).toBe("ok");
+    if (outcome.kind === "ok") {
+      expect(outcome.result.sourceFile.id).toBe("sf_1");
+      expect(outcome.result.sourceFile.status).toBe("READY");
+      expect(outcome.result.sourceFile.pageCount).toBe(2);
+      expect(outcome.result.inProgress).toBe(false);
+    }
+    expect(findFirst).toHaveBeenCalledWith({
+      where: { blobPathname: PATHNAME, ownerId: OWNER },
+    });
+    expect(headMock).not.toHaveBeenCalled();
+    expect(delMock).not.toHaveBeenCalled();
+    expect(runExtractionMock).not.toHaveBeenCalled();
   });
 
   it("reports a fresh extraction as in progress", async () => {
