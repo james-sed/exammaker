@@ -5,6 +5,7 @@ import type { DragEvent } from "react";
 import { upload } from "@vercel/blob/client";
 import { AlertCircle, FileUp, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { buildClientUploadOptions } from "../clientUploadOptions";
 import {
   ACCEPTED_EXTENSIONS_LABEL,
   ACCEPT_ATTRIBUTE,
@@ -76,8 +77,9 @@ export function UploadDropzone({
     setProgress(0);
     setPhase("uploading");
 
-    // Normalize the declared type so browsers that report an empty type for
-    // Office files or TXT still satisfy the token's content-type allowlist.
+    // Normalize the declared type too, so the request body carries the same
+    // canonical type as the explicit `contentType` below. Some browsers report
+    // an empty or generic type for Office files and TXT.
     const normalized = new File([file], file.name, {
       type: mimeType,
       lastModified: file.lastModified,
@@ -91,15 +93,13 @@ export function UploadDropzone({
       await upload(pathname, normalized, {
         access: "private",
         handleUploadUrl: "/api/uploads/token",
-        clientPayload: JSON.stringify({
-          name: file.name,
-          type: mimeType,
-          size: file.size,
+        ...buildClientUploadOptions({
+          mimeType,
+          fileName: file.name,
+          sizeBytes: file.size,
+          abortSignal: controller.signal,
+          onProgress: setProgress,
         }),
-        abortSignal: controller.signal,
-        onUploadProgress: ({ percentage }) => {
-          setProgress(Math.round(percentage));
-        },
       });
 
       setPhase("finishing");

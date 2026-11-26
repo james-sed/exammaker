@@ -103,6 +103,7 @@ The app only accepts blobs stored on the private host. The browser picks `access
 - Accepted types: PDF, DOCX, PPTX, TXT.
 - Limits: **20 MB** per file, **150 pages**, and **200,000** extracted characters.
 - Each upload gets `sources/<userId>/<uuid>` as its pathname, and a `SourceFile` row is created *before* the binary moves.
+- The browser sends the extension-derived content type explicitly on `upload()`. The pathname has no extension, so otherwise Blob would infer `application/octet-stream` and reject it against the token's allowlist.
 - The browser calls `POST /api/uploads/finalize` itself after the upload resolves. Blob's `onUploadCompleted` callback is deliberately not used. Finalize is idempotent: repeating it returns the same source, even after the binary is gone.
 - Extraction verifies magic bytes, extension, page count, password protection, corruption, and readable text. Spoofed, scanned, encrypted, corrupt, and oversized files fail with a user-safe message.
 - Sanitized text is saved first, then the binary is deleted. If deletion fails, the row keeps `blobKey`, sets `blobDeleteFailedAt`, and the janitor retries.
