@@ -1,3 +1,4 @@
+import { ensureUint8ArrayBase64Polyfill } from "@/lib/uint8arrayBase64";
 import { MAX_PAGES } from "../constants";
 import type { ExtractedDocument } from "../types/upload.types";
 import {
@@ -25,6 +26,9 @@ function isPasswordError(error: unknown): boolean {
 export async function extractPdf(
   bytes: Uint8Array
 ): Promise<ExtractedDocument> {
+  // `unpdf` installs a non-conformant `Uint8Array.toBase64` when it loads.
+  // Install the spec-compliant helpers first so PDF.js skips its own.
+  ensureUint8ArrayBase64Polyfill();
   const { extractText, getDocumentProxy } = await import("unpdf");
 
   let pdf: Awaited<ReturnType<typeof getDocumentProxy>> | undefined;

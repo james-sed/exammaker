@@ -5,7 +5,14 @@ import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
 import { authConfig } from "./auth.config";
+import { ensureUint8ArrayBase64Polyfill } from "./uint8arrayBase64";
 import { loginSchema } from "../features/auth/schemas/auth.schema";
+
+// `unpdf` patches `Uint8Array.prototype.toBase64` with a version that ignores
+// the base64url alphabet. Auth.js/jose prefer that method when present, so a
+// PDF extraction in the same process would corrupt every new session cookie.
+// Install the conformant helpers before Auth.js encodes or decodes a token.
+ensureUint8ArrayBase64Polyfill();
 
 const googleProviders =
   process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET

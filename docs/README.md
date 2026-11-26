@@ -106,6 +106,7 @@ The app only accepts blobs stored on the private host. The browser picks `access
 - The browser sends the extension-derived content type explicitly on `upload()`. The pathname has no extension, so otherwise Blob would infer `application/octet-stream` and reject it against the token's allowlist.
 - The browser calls `POST /api/uploads/finalize` itself after the upload resolves. Blob's `onUploadCompleted` callback is deliberately not used. Finalize is idempotent: repeating it returns the same source, even after the binary is gone.
 - Extraction verifies magic bytes, extension, page count, password protection, corruption, and readable text. Spoofed, scanned, encrypted, corrupt, and oversized files fail with a user-safe message.
+- PDF.js ships non-conformant `Uint8Array` base64 helpers that ignore the base64url alphabet. `src/lib/uint8arrayBase64.ts` installs conformant helpers before `unpdf` loads and before Auth.js starts, so session cookies stay valid in long-lived processes.
 - Sanitized text is saved first, then the binary is deleted. If deletion fails, the row keeps `blobKey`, sets `blobDeleteFailedAt`, and the janitor retries.
 - A failed extraction can be retried while its binary still exists.
 - Raw binaries are deleted immediately after extraction. Sanitized text is kept until the quiz is deleted.
